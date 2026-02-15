@@ -1,0 +1,83 @@
+head    1.4;
+access;
+symbols
+	RELEASE_2_0:1.4
+	RELEASE_1_0:1.2
+	BETA_1:1.1;
+locks; strict;
+comment @# @;
+
+
+1.4
+date    2024.02.01.10.00.00;        author alice; state Exp;
+branches;
+next    1.3;
+
+1.3
+date    2024.01.20.10.00.00;        author bob; state Exp;
+branches;
+next    1.2;
+
+1.2
+date    2024.01.15.10.00.00;        author charlie; state Exp;
+branches;
+next    1.1;
+
+1.1
+date    2024.01.10.10.00.00;        author dave; state Exp;
+branches;
+next    ;
+
+desc
+@Configuration file with release tags
+@
+
+
+1.4
+log
+@Release 2.0 updates
+@
+text
+@# Application Configuration
+version: 2.0.0
+debug: false
+features:
+  - core
+  - advanced
+  - experimental
+@
+
+1.3
+log
+@Added experimental features
+@
+text
+@d3 1
+a3 1debug: true
+d4 1
+a4 3features:
+  - core
+  - advanced
+@
+
+1.2
+log
+@Release 1.0 version
+@
+text
+@d3 1
+a3 1debug: false
+d4 3
+a6 2features:
+  - core
+@
+
+1.1
+log
+@Initial beta configuration
+@
+text
+@d1 2
+a2 2# Application Configuration (Beta)
+version: 0.9.0
+@

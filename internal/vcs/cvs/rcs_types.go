@@ -1,6 +1,9 @@
 package cvs
 
-import "time"
+import (
+	"strings"
+	"time"
+)
 
 // RCSFile represents a parsed RCS file
 type RCSFile struct {
@@ -111,15 +114,24 @@ func (r *RCSFile) GetTags() map[string]string {
 }
 
 func isBranchNumber(rev string) bool {
-	// Branch numbers have odd number of dot-separated components
-	// and typically end with .0.X (magic branch numbers)
+	// Magic branch numbers have ".0." in them (e.g., 1.2.0.2)
+	// Regular branch commits have 4+ components without .0. (e.g., 1.2.2.1)
+	// Trunk revisions have 2 components (e.g., 1.3)
+	if strings.Contains(rev, ".0.") {
+		return true // Magic branch number
+	}
+	
+	// Count dots to determine component count
 	dots := 0
 	for _, c := range rev {
 		if c == '.' {
 			dots++
 		}
 	}
-	return dots%2 == 1 // Odd number of dots = even number of components = branch
+	
+	// 4+ components (3+ dots) means it's on a branch
+	// 2 components (1 dot) means it's on trunk
+	return dots >= 3
 }
 
 func isBranchPrefix(branchNum, rev string) bool {

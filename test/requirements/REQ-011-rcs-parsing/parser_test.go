@@ -185,16 +185,19 @@ text
 	if delta2 == nil {
 		t.Fatal("Delta 1.2 not found")
 	}
-	if delta2.Log != "Added new feature X" {
-		t.Errorf("Expected log 'Added new feature X', got %q", delta2.Log)
+	// RCS format includes trailing newline in log strings
+	expectedLog2 := "Added new feature X\n"
+	if delta2.Log != expectedLog2 {
+		t.Errorf("Expected log %q, got %q", expectedLog2, delta2.Log)
 	}
 
 	delta1 := rcsFile.Deltas["1.1"]
 	if delta1 == nil {
 		t.Fatal("Delta 1.1 not found")
 	}
-	if delta1.Log != "Initial commit" {
-		t.Errorf("Expected log 'Initial commit', got %q", delta1.Log)
+	expectedLog1 := "Initial commit\n"
+	if delta1.Log != expectedLog1 {
+		t.Errorf("Expected log %q, got %q", expectedLog1, delta1.Log)
 	}
 }
 

@@ -1,0 +1,30 @@
+head    1.1;
+access;
+symbols;
+locks; strict;
+comment @# @;
+
+
+1.1
+date    2024.01.10.10.00.00;        author adam; state Exp;
+branches;
+next    ;
+
+desc
+@Simple README file for testing.
+@
+
+
+1.1
+log
+@Initial revision
+@
+text
+@# Test Project
+
+This is a simple test project for CVS to Git migration.
+
+Features:
+- Simple file structure
+- Basic commit history
+@

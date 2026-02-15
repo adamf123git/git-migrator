@@ -111,8 +111,10 @@ func (l *RCSLexer) readString() Token {
 				break
 			}
 			if next == '@' {
+				// Escaped @ inside string
 				result = append(result, '@')
 			} else {
+				// End of string - unread the extra character
 				l.reader.UnreadRune()
 				break
 			}

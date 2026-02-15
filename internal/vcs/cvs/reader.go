@@ -1,8 +1,13 @@
+// Package cvs provides CVS repository reading and RCS file parsing capabilities.
 package cvs
 
 import (
+	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
+
+	"github.com/adamf123git/git-migrator/internal/vcs"
 )
 
 // ValidationMessage represents a validation message
@@ -17,6 +22,179 @@ type ValidationResult struct {
 	Errors   []ValidationMessage
 	Warnings []ValidationMessage
 	Infos    []ValidationMessage
+}
+
+// Reader implements VCSReader for CVS repositories
+type Reader struct {
+	path    string
+	rcsFiles []*RCSFile
+	info    *vcs.RepositoryInfo
+}
+
+// NewReader creates a new CVS repository reader
+func NewReader(path string) *Reader {
+	return &Reader{path: path}
+}
+
+// Validate checks if the repository is valid and accessible
+func (r *Reader) Validate() error {
+	result := NewValidator().Validate(r.path)
+	if !result.Valid {
+		if len(result.Errors) > 0 {
+			return fmt.Errorf("validation failed: %s", result.Errors[0].Message)
+		}
+		return fmt.Errorf("validation failed")
+	}
+	return nil
+}
+
+// GetCommits returns an iterator over all commits
+func (r *Reader) GetCommits() (vcs.CommitIterator, error) {
+	if err := r.loadRCSFiles(); err != nil {
+		return nil, err
+	}
+
+	// Collect all commits from all RCS files
+	var allCommits []*vcs.Commit
+	seen := make(map[string]bool) // Track commits by revision+author+date
+
+	for _, rcs := range r.rcsFiles {
+		commits := rcs.GetCommits()
+		for _, c := range commits {
+			// Create a unique key for deduplication
+			key := fmt.Sprintf("%s|%s|%d", c.Revision, c.Author, c.Date.Unix())
+			if !seen[key] {
+				seen[key] = true
+				allCommits = append(allCommits, &vcs.Commit{
+					Revision: c.Revision,
+					Author:   c.Author,
+					Date:     c.Date,
+					Message:  c.Message,
+					Branch:   c.Branch,
+				})
+			}
+		}
+	}
+
+	// Sort commits by date (oldest first for proper application)
+	sortCommitsByDate(allCommits)
+
+	return &cvsCommitIterator{commits: allCommits}, nil
+}
+
+// GetBranches returns a list of branch names
+func (r *Reader) GetBranches() ([]string, error) {
+	if err := r.loadRCSFiles(); err != nil {
+		return nil, err
+	}
+
+	branchSet := make(map[string]bool)
+	for _, rcs := range r.rcsFiles {
+		for _, branch := range rcs.GetBranches() {
+			branchSet[branch] = true
+		}
+	}
+
+	var branches []string
+	for b := range branchSet {
+		branches = append(branches, b)
+	}
+	return branches, nil
+}
+
+// GetTags returns a map of tag names to revision identifiers
+func (r *Reader) GetTags() (map[string]string, error) {
+	if err := r.loadRCSFiles(); err != nil {
+		return nil, err
+	}
+
+	allTags := make(map[string]string)
+	for _, rcs := range r.rcsFiles {
+		for name, rev := range rcs.GetTags() {
+			allTags[name] = rev
+		}
+	}
+	return allTags, nil
+}
+
+// Close releases any resources
+func (r *Reader) Close() error {
+	return nil
+}
+
+// loadRCSFiles loads and parses all RCS files in the repository
+func (r *Reader) loadRCSFiles() error {
+	if r.rcsFiles != nil {
+		return nil // Already loaded
+	}
+
+	// Find all ,v files (RCS files)
+	err := filepath.Walk(r.path, func(path string, info os.FileInfo, err error) error {
+		if err != nil {
+			return nil // Skip errors
+		}
+		if info.IsDir() {
+			// Skip CVSROOT directory
+			if filepath.Base(path) == "CVSROOT" {
+				return filepath.SkipDir
+			}
+			return nil
+		}
+
+		// Check if it's an RCS file (ends with ,v)
+		if strings.HasSuffix(path, ",v") {
+			file, err := os.Open(path)
+			if err != nil {
+				return nil // Skip files we can't read
+			}
+			defer file.Close()
+
+			parser := NewRCSParser(file)
+			rcs, err := parser.Parse()
+			if err != nil {
+				return nil // Skip files we can't parse
+			}
+
+			r.rcsFiles = append(r.rcsFiles, rcs)
+		}
+
+		return nil
+	})
+
+	return err
+}
+
+// cvsCommitIterator implements CommitIterator for CVS
+type cvsCommitIterator struct {
+	commits []*vcs.Commit
+	index   int
+}
+
+func (i *cvsCommitIterator) Next() bool {
+	i.index++
+	return i.index <= len(i.commits)
+}
+
+func (i *cvsCommitIterator) Commit() *vcs.Commit {
+	if i.index < 1 || i.index > len(i.commits) {
+		return nil
+	}
+	return i.commits[i.index-1]
+}
+
+func (i *cvsCommitIterator) Err() error {
+	return nil
+}
+
+// sortCommitsByDate sorts commits chronologically (oldest first)
+func sortCommitsByDate(commits []*vcs.Commit) {
+	for i := 0; i < len(commits)-1; i++ {
+		for j := i + 1; j < len(commits); j++ {
+			if commits[i].Date.After(commits[j].Date) {
+				commits[i], commits[j] = commits[j], commits[i]
+			}
+		}
+	}
 }
 
 // Validator validates CVS repositories
