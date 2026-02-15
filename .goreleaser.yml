@@ -1,0 +1,193 @@
+# .goreleaser.yml
+# Git-Migrator Release Configuration
+# https://goreleaser.com/
+
+# Project metadata
+project_name: git-migrator
+
+# Build settings
+before:
+  hooks:
+    # Run tests before building
+    - go mod tidy
+    - go generate ./...
+    - make test
+
+# Build configurations
+version: 2
+
+builds:
+  - main: ./cmd/git-migrator
+    binary: git-migrator
+    env:
+      - CGO_ENABLED=0
+    goos:
+      - linux
+      - darwin
+      - windows
+    goarch:
+      - amd64
+      - arm64
+    goarm:
+      - "6"
+      - "7"
+    ignore:
+      # Don't build Windows/arm64 yet (experimental)
+      - goos: windows
+        goarch: arm64
+    ldflags:
+      - -s -w
+      - -X main.Version={{.Version}}
+      - -X main.Commit={{.Commit}}
+      - -X main.Date={{.Date}}
+      - -X main.BuiltBy=goreleaser
+    flags:
+      - -trimpath
+    asmflags:
+      - all=-trimpath={{.Env.GOPATH}}
+    gcflags:
+      - all=-trimpath={{.Env.GOPATH}}
+
+# Archive configurations
+archives:
+  - name_template: >-
+      {{ .ProjectName }}-{{ .Version }}-
+      {{- if eq .Os "darwin" }}macOS
+      {{- else if eq .Os "linux" }}Linux
+      {{- else if eq .Os "windows" }}Windows
+      {{- else }}{{ .Os }}{{ end }}-
+      {{- if eq .Arch "amd64" }}x86_64
+      {{- else if eq .Arch "arm64" }}ARM64
+      {{- else }}{{ .Arch }}{{ end }}
+      {{- if .Arm }}v{{ .Arm }}{{ end }}
+    format: tar.gz
+    format_overrides:
+      - goos: windows
+        format: zip
+    files:
+      - LICENSE
+      - README.md
+      - CHANGELOG.md
+      - docs/*
+
+# Checksum configuration
+checksum:
+  name_template: "{{ .ProjectName }}-{{ .Version }}-checksums.txt"
+  algorithm: sha256
+
+# Snapshot configuration (for testing)
+snapshot:
+  name_template: "{{ incpatch .Version }}-next"
+
+# Changelog configuration
+changelog:
+  sort: asc
+  filters:
+    exclude:
+      - "^docs:"
+      - "^test:"
+      - "^ci:"
+      - Merge pull request
+      - Merge branch
+  groups:
+    - title: "🚀 Features"
+      regexp: "^.*feat[(\\w)]*:+.*$"
+      order: 0
+    - title: "🐛 Bug fixes"
+      regexp: "^.*fix[(\\w)]*:+.*$"
+      order: 1
+    - title: "🧰 Maintenance"
+      regexp: "^.*chore[(\\w)]*:+.*$"
+      order: 2
+    - title: "📝 Documentation"
+      regexp: "^.*docs[(\\w)]*:+.*$"
+      order: 3
+    - title: "🔄 Other changes"
+      order: 999
+
+# Release configuration
+release:
+  github:
+    owner: adamf123git
+    name: git-migrator
+  draft: false
+  prerelease: auto
+  mode: replace
+  name_template: "{{ .ProjectName }} v{{ .Version }}"
+  header: |
+    ## Git-Migrator v{{ .Version }}
+
+    Welcome to Git-Migrator v{{ .Version }}! This release includes...
+
+    ### 📦 Installation
+
+    Download the appropriate binary for your platform from the assets below.
+
+    ### 🐳 Docker
+
+    ```bash
+    docker pull adamf123docker/git-migrator:{{ .Version }}
+    ```
+
+  footer: |
+
+    ## 📚 Documentation
+
+    - [Getting Started](https://github.com/adamf123git/git-migrator/blob/main/docs/getting-started.md)
+    - [Migration Guide](https://github.com/adamf123git/git-migrator/blob/main/docs/migration.md)
+    - [Configuration Reference](https://github.com/adamf123git/git-migrator/blob/main/docs/configuration.md)
+
+    ## 🙏 Thanks
+
+    Thanks to all contributors who made this release possible!
+
+    **Full Changelog**: https://github.com/adamf123git/git-migrator/compare/{{ .PreviousTag }}...{{ .Tag }}
+
+# Docker configurations
+dockers:
+  # AMD64 Docker image
+  - dockerfile: Dockerfile
+    goos: linux
+    goarch: amd64
+    image_templates:
+      - "adamf123docker/git-migrator:{{ .Version }}-amd64"
+      - "adamf123docker/git-migrator:latest-amd64"
+    build_flag_templates:
+      - "--platform=linux/amd64"
+      - "--label=org.opencontainers.image.created={{.Date}}"
+      - "--label=org.opencontainers.image.title={{.ProjectName}}"
+      - "--label=org.opencontainers.image.revision={{.FullCommit}}"
+      - "--label=org.opencontainers.image.version={{.Version}}"
+      - "--label=org.opencontainers.image.source={{.GitURL}}"
+      - "--label=org.opencontainers.image.description=Migrate version control repositories with full history preservation"
+      - "--label=org.opencontainers.image.licenses=MIT"
+
+  # ARM64 Docker image
+  - dockerfile: Dockerfile
+    goos: linux
+    goarch: arm64
+    image_templates:
+      - "adamf123docker/git-migrator:{{ .Version }}-arm64"
+      - "adamf123docker/git-migrator:latest-arm64"
+    build_flag_templates:
+      - "--platform=linux/arm64"
+      - "--label=org.opencontainers.image.created={{.Date}}"
+      - "--label=org.opencontainers.image.title={{.ProjectName}}"
+      - "--label=org.opencontainers.image.revision={{.FullCommit}}"
+      - "--label=org.opencontainers.image.version={{.Version}}"
+      - "--label=org.opencontainers.image.source={{.GitURL}}"
+      - "--label=org.opencontainers.image.description=Migrate version control repositories with full history preservation"
+      - "--label=org.opencontainers.image.licenses=MIT"
+
+# Docker manifest for multi-arch
+docker_manifests:
+  - name_template: "adamf123docker/git-migrator:{{ .Version }}"
+    image_templates:
+      - "adamf123docker/git-migrator:{{ .Version }}-amd64"
+      - "adamf123docker/git-migrator:{{ .Version }}-arm64"
+  - name_template: "adamf123docker/git-migrator:latest"
+    image_templates:
+      - "adamf123docker/git-migrator:latest-amd64"
+      - "adamf123docker/git-migrator:latest-arm64"
+
+# EOF
