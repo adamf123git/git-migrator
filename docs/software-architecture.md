@@ -443,7 +443,7 @@ graph TB
 version: '3.8'
 services:
   git-migrator:
-    image: adamf123git/git-migrator:latest
+    image: adamf123docker/git-migrator:latest
     ports:
       - "8080:8080"
     volumes:

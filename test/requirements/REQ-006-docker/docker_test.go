@@ -46,7 +46,7 @@ func TestDockerfileBuild(t *testing.T) {
 
 	// Try to build the image
 	cmd := exec.Command("docker", "build", "-t", "git-migrator-test", ".")
-	cmd.Dir = "/home/adamf/git-migrator"
+	cmd.Dir = getProjectRoot()
 	output, err := cmd.CombinedOutput()
 	if err != nil {
 		t.Logf("Docker build output: %s", string(output))
@@ -68,7 +68,7 @@ func TestDockerComposeSyntax(t *testing.T) {
 	}
 
 	cmd := exec.Command("docker-compose", "config")
-	cmd.Dir = "/home/adamf/git-migrator"
+	cmd.Dir = getProjectRoot()
 	output, err := cmd.CombinedOutput()
 	if err != nil {
 		t.Logf("docker-compose config output: %s", string(output))
@@ -89,7 +89,7 @@ func TestDockerImageSize(t *testing.T) {
 
 	// Build first
 	cmd := exec.Command("docker", "build", "-t", "git-migrator-size-test", ".")
-	cmd.Dir = "/home/adamf/git-migrator"
+	cmd.Dir = getProjectRoot()
 	if err := cmd.Run(); err != nil {
 		t.Skip("Could not build image")
 	}
@@ -123,7 +123,7 @@ func TestDockerRunCLI(t *testing.T) {
 
 	// Build first
 	cmd := exec.Command("docker", "build", "-t", "git-migrator-cli-test", ".")
-	cmd.Dir = "/home/adamf/git-migrator"
+	cmd.Dir = getProjectRoot()
 	if err := cmd.Run(); err != nil {
 		t.Skip("Could not build image")
 	}
@@ -151,7 +151,7 @@ func TestDockerRunWeb(t *testing.T) {
 
 	// Build first
 	cmd := exec.Command("docker", "build", "-t", "git-migrator-web-test", ".")
-	cmd.Dir = "/home/adamf/git-migrator"
+	cmd.Dir = getProjectRoot()
 	if err := cmd.Run(); err != nil {
 		t.Skip("Could not build image")
 	}

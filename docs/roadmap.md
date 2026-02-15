@@ -20,8 +20,8 @@ This roadmap outlines the development timeline for Git-Migrator, organized into 
 | Sprint 2 | CVS Reading & RCS Parsing | ✅ Complete | 100% |
 | Sprint 3 | Git Writing & Commit Application | ✅ Complete | 100% |
 | Sprint 4 | Migration Integration | ✅ Complete | 100% |
-| Sprint 5 | Web UI & Docker | 🔜 Next | 0% |
-| Sprint 6 | Testing, Polish & Release | ⚪ Planned | 0% |
+| Sprint 5 | Web UI & Docker | ✅ Complete | 100% |
+| Sprint 6 | Testing, Polish & Release | 🔜 Next | 0% |
 
 ---
 
@@ -194,7 +194,7 @@ gantt
 
 ---
 
-### Sprint 5: Web UI & Docker (Weeks 9-10)
+### Sprint 5: Web UI & Docker (Weeks 9-10) ✅ COMPLETE
 
 #### Objectives
 - Web UI for migration monitoring
@@ -205,57 +205,58 @@ gantt
 #### Requirements
 | ID | Requirement | Tests | Status |
 |----|-------------|-------|--------|
-| REQ-006 | Docker support | 10 | ⚪ |
-| REQ-008 | Web UI | 15 | ⚪ |
-| REQ-018 | REST API | 12 | ⚪ |
-| REQ-019 | WebSocket progress | 8 | ⚪ |
+| REQ-006 | Docker support | 7 | ✅ |
+| REQ-008 | Web UI | 6 | ✅ |
+| REQ-018 | REST API | 10 | ✅ |
+| REQ-019 | WebSocket progress | 6 | ✅ |
 
-#### Tasks
+#### Completed Tasks
 
 **Day 1-4: Web Server & API**
-- [ ] Create `test/requirements/REQ-018-rest-api/`
-- [ ] Write tests for HTTP server
-- [ ] Write tests for API endpoints
-- [ ] Implement `internal/web/server.go`
-- [ ] Implement `internal/web/api.go`
-- [ ] Test: API endpoints functional
+- [x] Create `test/requirements/REQ-018-rest-api/`
+- [x] Write tests for HTTP server
+- [x] Write tests for API endpoints
+- [x] Implement `internal/web/server.go`
+- [x] Implement `internal/web/api.go` (consolidated in server.go)
+- [x] Test: API endpoints functional
 
 **Day 5-7: WebSocket Progress**
-- [ ] Create `test/requirements/REQ-019-websocket/`
-- [ ] Write tests for WebSocket handler
-- [ ] Implement `internal/web/websocket.go`
-- [ ] Implement `internal/progress/websocket.go`
-- [ ] Test: Real-time progress in browser
+- [x] Create `test/requirements/REQ-019-websocket/`
+- [x] Write tests for WebSocket handler
+- [x] Implement `internal/web/websocket.go`
+- [x] Implement `internal/progress/websocket.go`
+- [x] Test: Real-time progress in browser
 
 **Day 8-10: Web UI**
-- [ ] Create `test/requirements/REQ-008-web-ui/`
-- [ ] Write E2E tests (Playwright)
-- [ ] Create `internal/web/static/index.html`
-- [ ] Create `internal/web/static/app.js`
-- [ ] Create `internal/web/static/style.css`
-- [ ] Test: UI shows migration progress
+- [x] Create `test/requirements/REQ-008-web-ui/`
+- [x] Write E2E tests (Playwright)
+- [x] Create `internal/web/static/index.html` (embedded in templates.go)
+- [x] Create `internal/web/static/app.js`
+- [x] Create `internal/web/static/style.css`
+- [x] Test: UI shows migration progress
 
 **Day 11-12: Docker**
-- [ ] Create `test/requirements/REQ-006-docker/`
-- [ ] Write tests for Docker execution
-- [ ] Create `Dockerfile`
-- [ ] Create `docker-compose.yml`
-- [ ] Test: Docker container runs migrations
+- [x] Create `test/requirements/REQ-006-docker/`
+- [x] Write tests for Docker execution
+- [x] Create `Dockerfile`
+- [x] Create `docker-compose.yml`
+- [x] Test: Docker container runs migrations
 
 **Day 13-14: Integration & Regression**
-- [ ] Run: `make test-regression`
-- [ ] Test: Full migration via Web UI
-- [ ] Test: Full migration via Docker
-- [ ] Fix any failures
-- [ ] Update requirements matrix
-- [ ] Commit and push
+- [x] Run: `make test-regression`
+- [x] Test: Full migration via Web UI
+- [x] Test: Full migration via Docker
+- [x] Fix any failures
+- [x] Update requirements matrix
+- [x] Commit and push
 
 #### Deliverables
-- ✅ Web UI for monitoring
+- ✅ Web UI for monitoring (internal/web/)
 - ✅ WebSocket real-time updates
-- ✅ REST API
-- ✅ Docker support
-- ✅ E2E tests for Web UI
+- ✅ REST API (9 endpoints)
+- ✅ Docker support (multi-platform builds)
+- ✅ E2E tests for Web UI (29 tests total)
+- ✅ Docker publish workflow configured
 
 ---
 
@@ -506,6 +507,7 @@ Update `test/requirements/STATUS.md` with:
 
 | Date | Version | Changes |
 |------|---------|---------|
+| 2025-02-15 | 1.3 | Sprint 5 completed; Web UI & Docker done |
 | 2025-02-15 | 1.2 | Sprint 4 completed; migration integration done |
 | 2025-02-15 | 1.1 | Sprint 2 & 3 completed; updated progress |
 | 2025-01-18 | 1.0 | Initial roadmap |

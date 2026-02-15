@@ -26,20 +26,20 @@ Git-Migrator is an open-source tool for migrating repositories from legacy versi
 
 ```bash
 # Pull the image
-docker pull adamf123git/git-migrator:latest
+docker pull adamf123docker/git-migrator:latest
 
 # Run migration
 docker run --rm \
   -v /path/to/cvs/repo:/source \
   -v /path/to/git/repo:/target \
   -v $(pwd)/config.yaml:/config.yaml \
-  adamf123git/git-migrator migrate --config /config.yaml
+  adamf123docker/git-migrator migrate --config /config.yaml
 
 # Or start web UI
 docker run -d \
   -p 8080:8080 \
   -v /path/to/repos:/repos \
-  adamf123git/git-migrator web
+  adamf123docker/git-migrator web
 ```
 
 ### Using Binary
@@ -85,7 +85,7 @@ go build -o git-migrator ./cmd/git-migrator
 ### Docker
 
 ```bash
-docker pull adamf123git/git-migrator:latest
+docker pull adamf123docker/git-migrator:latest
 ```
 
 ## 📖 Usage
@@ -169,7 +169,7 @@ Start the web interface:
 git-migrator web --port 8080
 
 # Docker
-docker run -d -p 8080:8080 -v /path/to/repos:/repos adamf123git/git-migrator web
+docker run -d -p 8080:8080 -v /path/to/repos:/repos adamf123docker/git-migrator web
 ```
 
 Then open http://localhost:8080 in your browser.
@@ -408,16 +408,18 @@ Inspired by and built upon the shoulders of:
 
 - **Development Status:** Active development
 - **Current Version:** v0.1.0 (pre-release)
-- **Sprint Progress:** Sprint 3 complete, Sprint 4 next
+- **Sprint Progress:** Sprint 5 complete, Sprint 6 next
 - **Target Release:** v1.0.0 - Q2 2025
 
 ### Completed Sprints
 - ✅ Sprint 1: Foundation & Testing Infrastructure
 - ✅ Sprint 2: CVS Reading & RCS Parsing
 - ✅ Sprint 3: Git Writing & Commit Application
+- ✅ Sprint 4: Migration Integration
+- ✅ Sprint 5: Web UI & Docker
 
 ### Next Up
-- 🔜 Sprint 4: Migration Integration
+- 🔜 Sprint 6: Testing, Polish & Release
 
 See [Roadmap](./docs/roadmap.md) for detailed timeline.
 

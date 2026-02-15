@@ -26,6 +26,7 @@ test-unit:
 	$(GO) test -v ./internal/storage/... && \
 	$(GO) test -v ./internal/vcs/cvs/... && \
 	$(GO) test -v ./internal/vcs/git/... && \
+	$(GO) test -v ./internal/web/... && \
 	$(GO) test -v ./cmd/git-migrator/... && \
 	$(GO) test -v ./test/helpers/... && \
 	$(GO) test -v ./test/regression/... && \
@@ -41,7 +42,11 @@ test-unit:
 	$(GO) test -v ./test/requirements/REQ-014-commit-application/... && \
 	$(GO) test -v ./test/requirements/REQ-015-branch-tag/... && \
 	$(GO) test -v ./test/requirements/REQ-016-progress/... && \
-	$(GO) test -v ./test/requirements/REQ-017-state/...
+	$(GO) test -v ./test/requirements/REQ-017-state/... && \
+	$(GO) test -v ./test/requirements/REQ-006-docker/... && \
+	$(GO) test -v ./test/requirements/REQ-008-web-ui/... && \
+	$(GO) test -v ./test/requirements/REQ-018-rest-api/... && \
+	$(GO) test -v ./test/requirements/REQ-019-websocket/...
 
 ## test-integration: Run integration tests
 test-integration:
