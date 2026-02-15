@@ -1,0 +1,52 @@
+#!/bin/bash
+
+# Pre-commit hook for Git-Migrator
+# Enforces TDD practices and runs tests before commits
+
+echo "Running pre-commit checks..."
+echo ""
+
+# Run tests
+echo "1. Running unit tests..."
+if ! go test -v -race -coverprofile=/tmp/coverage.out ./... 2>&1 | grep -E "(PASS|FAIL|coverage)"; then
+    echo ""
+    echo "❌ Tests failed! Please fix before committing."
+    exit 1
+fi
+
+echo ""
+
+# Check coverage
+echo "2. Checking test coverage..."
+COVERAGE=$(go tool cover -func=/tmp/coverage.out 2>/dev/null | grep total | awk '{print $3}' | sed 's/%//')
+if [ ! -z "$COVERAGE" ]; then
+    echo "   Total coverage: ${COVERAGE}%"
+    if (( $(echo "$COVERAGE < 80" | bc -l) )); then
+        echo ""
+        echo "⚠️  Warning: Coverage is below 80% threshold (current: ${COVERAGE}%)"
+        echo "   Consider adding more tests."
+    else
+        echo "   ✅ Coverage meets 80% threshold"
+    fi
+else
+    echo "   ⚠️  Could not determine coverage"
+fi
+
+echo ""
+
+# Run linter
+echo "3. Running linter..."
+if command -v golangci-lint &> /dev/null; then
+    if ! golangci-lint run; then
+        echo ""
+        echo "❌ Linter found issues! Please fix before committing."
+        exit 1
+    fi
+    echo "   ✅ No linter errors"
+else
+    echo "   ⚠️  golangci-lint not installed, skipping lint check"
+fi
+
+echo ""
+echo "✅ All pre-commit checks passed!"
+exit 0
