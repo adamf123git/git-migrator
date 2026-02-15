@@ -156,11 +156,11 @@ func TestProgressThreadSafety(t *testing.T) {
 // TestProgressStatus tests status structure
 func TestProgressStatus(t *testing.T) {
 	status := progress.Status{
-		Current:   50,
-		Total:     100,
+		Current:    50,
+		Total:      100,
 		Percentage: 50.0,
-		Operation: "Testing",
-		ETA:       time.Minute,
+		Operation:  "Testing",
+		ETA:        time.Minute,
 	}
 
 	if status.Percentage != 50.0 {

@@ -1,11 +1,11 @@
 package requirements
 
 import (
+	"fmt" // added missing import
 	"os"
 	"path/filepath"
 	"testing"
 	"time"
-	"fmt" // added missing import
 
 	"github.com/adamf123git/git-migrator/internal/vcs"
 	"github.com/adamf123git/git-migrator/internal/vcs/git"

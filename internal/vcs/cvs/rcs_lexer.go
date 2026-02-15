@@ -10,10 +10,10 @@ import (
 type TokenType int
 
 const (
-	TokenEOF TokenType = iota
-	TokenIdent    // identifier
-	TokenNumber   // revision number like 1.2.3.4
-	TokenString   // @-delimited string
+	TokenEOF    TokenType = iota
+	TokenIdent            // identifier
+	TokenNumber           // revision number like 1.2.3.4
+	TokenString           // @-delimited string
 	TokenSemicolon
 	TokenColon
 	TokenNewline

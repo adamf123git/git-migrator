@@ -26,9 +26,9 @@ type ValidationResult struct {
 
 // Reader implements VCSReader for CVS repositories
 type Reader struct {
-	path    string
+	path     string
 	rcsFiles []*RCSFile
-	info    *vcs.RepositoryInfo
+	info     *vcs.RepositoryInfo
 }
 
 // NewReader creates a new CVS repository reader

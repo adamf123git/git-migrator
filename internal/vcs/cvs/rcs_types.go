@@ -120,7 +120,7 @@ func isBranchNumber(rev string) bool {
 	if strings.Contains(rev, ".0.") {
 		return true // Magic branch number
 	}
-	
+
 	// Count dots to determine component count
 	dots := 0
 	for _, c := range rev {
@@ -128,7 +128,7 @@ func isBranchNumber(rev string) bool {
 			dots++
 		}
 	}
-	
+
 	// 4+ components (3+ dots) means it's on a branch
 	// 2 components (1 dot) means it's on trunk
 	return dots >= 3

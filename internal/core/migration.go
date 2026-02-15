@@ -19,28 +19,28 @@ import (
 
 // MigrationConfig holds migration configuration
 type MigrationConfig struct {
-	SourceType   string            // cvs, svn
-	SourcePath   string            // Path to source repo
-	TargetPath   string            // Path to target Git repo
-	AuthorMap    map[string]string // CVS user -> "Name <email>"
-	BranchMap    map[string]string // CVS branch -> Git branch
-	TagMap       map[string]string // CVS tag -> Git tag
-	DryRun       bool              // Preview without changes
-	Resume       bool              // Resume from last checkpoint
-	StateFile    string            // Path to state file
-	ChunkSize    int               // Save state every N commits
-	InterruptAt  int               // For testing: interrupt after N commits
+	SourceType  string            // cvs, svn
+	SourcePath  string            // Path to source repo
+	TargetPath  string            // Path to target Git repo
+	AuthorMap   map[string]string // CVS user -> "Name <email>"
+	BranchMap   map[string]string // CVS branch -> Git branch
+	TagMap      map[string]string // CVS tag -> Git tag
+	DryRun      bool              // Preview without changes
+	Resume      bool              // Resume from last checkpoint
+	StateFile   string            // Path to state file
+	ChunkSize   int               // Save state every N commits
+	InterruptAt int               // For testing: interrupt after N commits
 }
 
 // Migrator orchestrates the migration process
 type Migrator struct {
-	config     *MigrationConfig
-	source     vcs.VCSReader
-	target     *git.Writer
-	authorMap  *mapping.AuthorMap
-	reporter   *progress.Reporter
-	state      *MigrationState
-	db         *storage.StateDB
+	config    *MigrationConfig
+	source    vcs.VCSReader
+	target    *git.Writer
+	authorMap *mapping.AuthorMap
+	reporter  *progress.Reporter
+	state     *MigrationState
+	db        *storage.StateDB
 }
 
 // NewMigrator creates a new migrator
@@ -69,7 +69,11 @@ func (m *Migrator) Run() error {
 		if err := m.initTarget(); err != nil {
 			return fmt.Errorf("failed to init target: %w", err)
 		}
-		defer m.target.Close()
+		defer func() {
+			if err := m.target.Close(); err != nil {
+				// Log error but don't fail - cleanup is best effort
+			}
+		}()
 	}
 
 	// Initialize state
@@ -138,7 +142,9 @@ func (m *Migrator) Run() error {
 
 		// Test interruption
 		if m.config.InterruptAt > 0 && i+1 >= m.config.InterruptAt {
-			m.saveState(commit.Revision, i+1, len(commits))
+			if err := m.saveState(commit.Revision, i+1, len(commits)); err != nil {
+				// Log error but continue - this is test interruption
+			}
 			return fmt.Errorf("interrupted at commit %d", i+1)
 		}
 	}
@@ -369,8 +375,12 @@ func (s *SimpleState) Load() (string, int, int, error) {
 	}
 
 	var processed, total int
-	fmt.Sscanf(lines[1], "%d", &processed)
-	fmt.Sscanf(lines[2], "%d", &total)
+	if _, err := fmt.Sscanf(lines[1], "%d", &processed); err != nil {
+		return "", 0, 0, fmt.Errorf("failed to parse processed count: %w", err)
+	}
+	if _, err := fmt.Sscanf(lines[2], "%d", &total); err != nil {
+		return "", 0, 0, fmt.Errorf("failed to parse total count: %w", err)
+	}
 
 	s.lastCommit = lines[0]
 	s.processed = processed

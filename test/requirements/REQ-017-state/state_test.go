@@ -39,14 +39,14 @@ func TestStateSaveLoad(t *testing.T) {
 
 	// Save state
 	state := &storage.MigrationState{
-		MigrationID:   "test-migration-1",
-		LastCommit:    "abc123",
-		Processed:     5,
-		Total:         10,
-		SourcePath:    "/path/to/cvs",
-		TargetPath:    "/path/to/git",
-		LastUpdated:   time.Now(),
-		Status:        "in_progress",
+		MigrationID: "test-migration-1",
+		LastCommit:  "abc123",
+		Processed:   5,
+		Total:       10,
+		SourcePath:  "/path/to/cvs",
+		TargetPath:  "/path/to/git",
+		LastUpdated: time.Now(),
+		Status:      "in_progress",
 	}
 
 	if err := db.Save(state); err != nil {
@@ -167,12 +167,12 @@ func TestStateHistory(t *testing.T) {
 	// Create multiple migrations
 	for i := 1; i <= 3; i++ {
 		state := &storage.MigrationState{
-			MigrationID:   string(rune('a' + i)),
-			LastCommit:    "commit",
-			Processed:     i,
-			Total:         10,
-			LastUpdated:   time.Now(),
-			Status:        "completed",
+			MigrationID: string(rune('a' + i)),
+			LastCommit:  "commit",
+			Processed:   i,
+			Total:       10,
+			LastUpdated: time.Now(),
+			Status:      "completed",
 		}
 		if err := db.Save(state); err != nil {
 			t.Fatalf("Failed to save state %d: %v", i, err)
