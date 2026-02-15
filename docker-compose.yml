@@ -1,0 +1,41 @@
+version: '3.8'
+
+services:
+  git-migrator:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: adamf123git/git-migrator:latest
+    container_name: git-migrator
+    ports:
+      - "8080:8080"
+    volumes:
+      # Repository access
+      - ./repos:/repos
+      # Configuration
+      - ./config:/config
+      # State persistence
+      - ./data:/data
+    environment:
+      # Configuration file path
+      - GIT_MIGRATOR_CONFIG=/config/migrator.yaml
+      # Database path
+      - GIT_MIGRATOR_DB=/data/migrator.db
+    command: web --port 8080
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://localhost:8080/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # Optional: Watchtower for automatic updates
+  watchtower:
+    image: containrrr/watchtower
+    container_name: watchtower
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    command: --interval 300 git-migrator
+    profiles:
+      - auto-update
