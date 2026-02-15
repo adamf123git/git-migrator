@@ -36,7 +36,6 @@ build/
 Thumbs.db
 
 # Application specific - SQLite state storage
-*.db
 *.sqlite
 *.sqlite3
 data/

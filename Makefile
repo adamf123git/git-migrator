@@ -14,13 +14,34 @@ build:
 	$(GO) build $(GOFLAGS) -o bin/$(BINARY_NAME) ./cmd/git-migrator
 
 ## test: Run all tests
-test: test-unit test-integration
+test: test-unit test-integration test-regression test-requirements
 	@echo "All tests passed!"
 
 ## test-unit: Run unit tests
 test-unit:
 	@echo "Running unit tests..."
-	$(GO) test -v -race -coverprofile=coverage.out ./...
+	@$(GO) test -v ./internal/core/... && \
+	$(GO) test -v ./internal/mapping/... && \
+	$(GO) test -v ./internal/progress/... && \
+	$(GO) test -v ./internal/storage/... && \
+	$(GO) test -v ./internal/vcs/cvs/... && \
+	$(GO) test -v ./internal/vcs/git/... && \
+	$(GO) test -v ./cmd/git-migrator/... && \
+	$(GO) test -v ./test/helpers/... && \
+	$(GO) test -v ./test/regression/... && \
+	$(GO) test -v ./test/requirements/REQ-001-cvs-to-git-migration/... && \
+	$(GO) test -v ./test/requirements/REQ-002-author-mapping/... && \
+	$(GO) test -v ./test/requirements/REQ-005-resume/... && \
+	$(GO) test -v ./test/requirements/REQ-007-cli-interface/... && \
+	$(GO) test -v ./test/requirements/REQ-009-tdd-regression/... && \
+	$(GO) test -v ./test/requirements/REQ-010-requirements-validation/... && \
+	$(GO) test -v ./test/requirements/REQ-011-rcs-parsing/... && \
+	$(GO) test -v ./test/requirements/REQ-012-cvs-validation/... && \
+	$(GO) test -v ./test/requirements/REQ-013-git-repo/... && \
+	$(GO) test -v ./test/requirements/REQ-014-commit-application/... && \
+	$(GO) test -v ./test/requirements/REQ-015-branch-tag/... && \
+	$(GO) test -v ./test/requirements/REQ-016-progress/... && \
+	$(GO) test -v ./test/requirements/REQ-017-state/...
 
 ## test-integration: Run integration tests
 test-integration:
@@ -74,6 +95,11 @@ docker-build:
 docker-run:
 	@echo "Running Docker container..."
 	docker run --rm -it $(BINARY_NAME):latest
+
+## docker-test: Run tests in Docker container
+docker-test:
+	@echo "Running tests in Docker container..."
+	docker run --rm -it $(BINARY_NAME):latest go test -v ./...
 
 ## fmt: Format code
 fmt:

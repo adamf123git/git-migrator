@@ -42,6 +42,19 @@ func (w *Writer) Init(path string) error {
 	w.path = path
 	w.repo = repo
 
+	// Ensure .git/objects directory structure exists to prevent race conditions
+	// when creating loose objects during concurrent operations
+	objectsDir := filepath.Join(path, ".git", "objects")
+	subdirs := []string{
+		filepath.Join(objectsDir, "info"),
+		filepath.Join(objectsDir, "pack"),
+	}
+	for _, dir := range subdirs {
+		if err := os.MkdirAll(dir, 0755); err != nil {
+			return fmt.Errorf("failed to create objects directory %s: %w", dir, err)
+		}
+	}
+
 	// Get worktree
 	worktree, err := repo.Worktree()
 	if err != nil {

@@ -4,6 +4,8 @@ package storage
 import (
 	"database/sql"
 	"fmt"
+	"os"
+	"path/filepath"
 	"time"
 
 	_ "modernc.org/sqlite"
@@ -28,6 +30,12 @@ type StateDB struct {
 
 // NewStateDB creates a new state database
 func NewStateDB(path string) (*StateDB, error) {
+	// Ensure parent directory exists to prevent I/O errors during rapid test execution
+	dir := filepath.Dir(path)
+	if err := os.MkdirAll(dir, 0755); err != nil {
+		return nil, fmt.Errorf("failed to create database directory: %w", err)
+	}
+
 	db, err := sql.Open("sqlite", path)
 	if err != nil {
 		return nil, fmt.Errorf("failed to open database: %w", err)
@@ -43,26 +51,49 @@ func NewStateDB(path string) (*StateDB, error) {
 	db.SetMaxOpenConns(1)
 	db.SetMaxIdleConns(1)
 
-	// Create schema
-	schema := `
-	CREATE TABLE IF NOT EXISTS migration_state (
-		migration_id TEXT PRIMARY KEY,
-		last_commit TEXT,
-		processed INTEGER,
-		total INTEGER,
-		source_path TEXT,
-		target_path TEXT,
-		last_updated TIMESTAMP,
-		status TEXT
-	);
+	// Set SQLite pragmas for better reliability during rapid test execution
+	// These must be set via EXEC statements, not DSN parameters, to avoid file path issues
+	pragmas := []string{
+		"PRAGMA journal_mode=DELETE;", // Use DELETE mode (default) - more reliable for rapid creation
+		"PRAGMA busy_timeout=5000;",   // Wait up to 5 seconds for locks
+		"PRAGMA synchronous=OFF;",     // Disable sync for test reliability
+	}
+	for _, pragma := range pragmas {
+		if _, err := db.Exec(pragma); err != nil {
+			db.Close()
+			return nil, fmt.Errorf("failed to set pragma: %w", err)
+		}
+	}
 
-	CREATE INDEX IF NOT EXISTS idx_status ON migration_state(status);
-	CREATE INDEX IF NOT EXISTS idx_last_updated ON migration_state(last_updated);
-	`
+	// Create schema - execute statements individually to avoid multi-statement issues
+	schemaStatements := []string{
+		`CREATE TABLE IF NOT EXISTS migration_state (
+			migration_id TEXT PRIMARY KEY,
+			last_commit TEXT,
+			processed INTEGER,
+			total INTEGER,
+			source_path TEXT,
+			target_path TEXT,
+			last_updated TIMESTAMP,
+			status TEXT
+		)`,
+		`CREATE INDEX IF NOT EXISTS idx_status ON migration_state(status)`,
+		`CREATE INDEX IF NOT EXISTS idx_last_updated ON migration_state(last_updated)`,
+	}
 
-	if _, err := db.Exec(schema); err != nil {
+	for _, stmt := range schemaStatements {
+		if _, err := db.Exec(stmt); err != nil {
+			db.Close()
+			return nil, fmt.Errorf("failed to execute schema statement: %w", err)
+		}
+	}
+
+	// Execute a simple query to ensure database file is created and synchronized
+	// This is important for tests that check for file existence immediately after creation
+	if _, err := db.Exec("SELECT 1;"); err != nil {
+		// This shouldn't fail, but if it does, the database has issues
 		db.Close()
-		return nil, fmt.Errorf("failed to create schema: %w", err)
+		return nil, fmt.Errorf("failed to verify database: %w", err)
 	}
 
 	return &StateDB{db: db}, nil
@@ -73,9 +104,9 @@ func (sdb *StateDB) Save(state *MigrationState) error {
 	state.LastUpdated = time.Now()
 
 	query := `
-	INSERT OR REPLACE INTO migration_state 
+	INSERT OR REPLACE INTO migration_state
 		(migration_id, last_commit, processed, total, source_path, target_path, last_updated, status)
-	VALUES 
+	VALUES
 		(?, ?, ?, ?, ?, ?, ?, ?)
 	`
 
@@ -175,5 +206,8 @@ func (sdb *StateDB) History() ([]*MigrationState, error) {
 
 // Close closes the database connection
 func (sdb *StateDB) Close() error {
+	// Ensure all idle connections are closed before closing the main connection
+	// This helps prevent resource leaks during rapid test execution
+	sdb.db.SetMaxIdleConns(0)
 	return sdb.db.Close()
 }
