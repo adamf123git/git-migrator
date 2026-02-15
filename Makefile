@@ -54,7 +54,9 @@ test-integration:
 	$(GO) test -v -tags=integration ./test/integration/...
 
 ## test-coverage: Generate coverage report
-test-coverage: test-unit
+test-coverage:
+	@echo "Running tests with coverage..."
+	$(GO) test -v -coverprofile=coverage.out ./internal/... ./cmd/...
 	@echo "Generating coverage report..."
 	$(GO) tool cover -html=coverage.out -o coverage.html
 	@echo "Coverage report generated: coverage.html"

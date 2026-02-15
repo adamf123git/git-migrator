@@ -22,7 +22,7 @@ jobs:
         run: go mod download
 
       - name: Run unit tests
-        run: go test -v -race -coverprofile=coverage.out -covermode=atomic ./...
+        run: go test -v -race -coverprofile=coverage.out -covermode=atomic ./internal/... ./cmd/...
 
       - name: Upload coverage
         uses: codecov/codecov-action@v4
@@ -105,4 +105,4 @@ jobs:
           go-version: ${{ matrix.go }}
 
       - name: Run tests
-        run: go test -v ./...
+        run: make test
