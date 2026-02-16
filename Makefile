@@ -112,6 +112,42 @@ docker-test:
 	@echo "Running tests in Docker container..."
 	docker run --rm -it $(BINARY_NAME):latest go test -v ./...
 
+## system-test-build: Build system test Docker image
+system-test-build:
+	@echo "Building system test Docker image..."
+	docker build -f test/system/Dockerfile -t $(BINARY_NAME)-system-test:latest .
+
+## system-test: Run full system test in Docker
+system-test:
+	@echo "Running full system test..."
+	docker run --rm -v $(PWD)/test-results:/workspace/migration-test $(BINARY_NAME)-system-test:latest
+
+## system-test-interactive: Run system test interactively for debugging
+system-test-interactive:
+	@echo "Running system test interactively..."
+	docker run --rm -it -v $(PWD)/test-results:/workspace/migration-test $(BINARY_NAME)-system-test:latest /bin/bash
+
+## system-test-verify: Run verification script on existing migration
+system-test-verify:
+	@echo "Running verification script..."
+	@if [ -d "test-results/git-repo" ]; then \
+		docker run --rm -it -v $(PWD)/test-results:/workspace/migration-test $(BINARY_NAME)-system-test:latest /usr/local/bin/verify-migration.sh; \
+	else \
+		echo "Error: No migration found at test-results/git-repo"; \
+		echo "Run 'make system-test' first to create a migration."; \
+		exit 1; \
+	fi
+
+## system-test-clean: Clean up system test artifacts
+system-test-clean:
+	@echo "Cleaning system test artifacts..."
+	rm -rf test-results/
+	docker rmi $(BINARY_NAME)-system-test:latest 2>/dev/null || true
+
+## system-test-all: Build and run complete system test
+system-test-all: system-test-build system-test
+	@echo "System test completed successfully!"
+
 ## fmt: Format code
 fmt:
 	@echo "Formatting code..."
